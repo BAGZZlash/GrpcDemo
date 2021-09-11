@@ -23,4 +23,15 @@ namespace GrpcServer
             });
         }
     }
+
+    public class SHPService : SHPTransmitter.SHPTransmitterBase
+    {
+        public override Task<SHPStatus> TransmitSHP(SHPObj request, ServerCallContext context)
+        {
+            return Task.FromResult(new SHPStatus
+            {
+                SendOk = true
+            });
+        }
+    }
 }

@@ -1,3 +1,4 @@
+using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using System;
@@ -17,20 +18,14 @@ namespace GrpcServer
 
         public override Task<HelloReply> SayHello(HelloRequest request, ServerCallContext context)
         {
+            string TestStr = request.Name;
+            ByteString MyBytes = ByteString.CopyFromUtf8(TestStr);
+            byte[] TestArray = MyBytes.ToByteArray();
+
             return Task.FromResult(new HelloReply
             {
-                Message = "Hello " + request.Name
-            });
-        }
-    }
-
-    public class SHPService : SHPTransmitter.SHPTransmitterBase
-    {
-        public override Task<SHPStatus> TransmitSHP(SHPObj request, ServerCallContext context)
-        {
-            return Task.FromResult(new SHPStatus
-            {
-                SendOk = true
+                Message = "You sent these bytes: " + TestArray[0].ToString() + ", " + TestArray[1].ToString() + ", " + TestArray[2].ToString() + ", " + 
+                                                     TestArray[3].ToString() + ", " + TestArray[4].ToString() + "."
             });
         }
     }

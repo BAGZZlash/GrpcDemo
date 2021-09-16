@@ -1,4 +1,5 @@
-﻿using Grpc.Net.Client;
+﻿using Google.Protobuf;
+using Grpc.Net.Client;
 using GrpcServer;
 using OSGeo.GDAL;
 using OSGeo.OGR;
@@ -12,6 +13,7 @@ namespace GrpcClient
         public string sFilename;
         public int firstLayer = 0;
         public Boolean Loaded = false;
+        public DataSource ds;
         private Layer Layer;
 
         public Boolean LoadShapeFile(string sFilename)
@@ -28,17 +30,21 @@ namespace GrpcClient
             Gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8", "NO");
             Gdal.SetConfigOption("SHAPE_ENCODING", "");
             Ogr.RegisterAll(); // Register all drivers
-            DataSource ds = Ogr.Open(sFilename, 0); // 0 means read-only, 1 means modifiable
+            ds = Ogr.Open(sFilename, 0); // 0 means read-only, 1 means modifiable
+
             if (ds == null)
             {
                 Console.WriteLine("Failed to open file [{0}]!", sFilename);
                 return (false);
             }
 
+            //string Banane = ds.ToString();
+            //int MySize = Banane.Length;
+
             Layer = ds.GetLayerByIndex(0);
             if (Layer == null)
             {
-                Console.WriteLine("Get the {0}th layer failed! n", "0");
+                Console.WriteLine("Getting the {0}th layer failed! \n", "0");
                 return (false);
             }
             return (true);
@@ -50,16 +56,17 @@ namespace GrpcClient
         static async Task Main(string[] args)
         {
             Shapefile TestShapeFile = new Shapefile();
-            //TestShapeFile.sFilename = "C:/Temp/Cloud/ownCloud/WFLO/Vortex/Demo/Testdata/Point_4326.shp";
             TestShapeFile.sFilename = "C:/Users/ccroo/ownCloud/WFLO/Vortex/Demo/Testdata/Point_4326.shp";
             Boolean LoadSuccess = TestShapeFile.LoadShapeFile(TestShapeFile.sFilename);
 
+            byte[] TestArray = { 17, 22, 19, 5, 93 };
+            TestArray[0] = 18;
+            ByteString MyBytes = ByteString.CopyFrom(TestArray);
+            string Banane = MyBytes.ToStringUtf8();
+
             Console.WriteLine("Shapefile loaded successfully: {0}", LoadSuccess);
 
-            Console.WriteLine("\nPlease enter your name: ");
-            string Username = Console.ReadLine();
-
-            var input = new HelloRequest { Name = Username };
+            var input = new HelloRequest { Name = Banane };
 
             Console.WriteLine("\nOpening channel.");
             var channel = GrpcChannel.ForAddress("https://localhost:5001");
@@ -70,9 +77,6 @@ namespace GrpcClient
 
             Console.WriteLine("\nServer replied:");
             Console.WriteLine(reply.Message);
-
-            var SHPInput = Google.Protobuf.WellKnownTypes.Any.Pack((Google.Protobuf.IMessage)TestShapeFile);
-            //reply = await client.
 
             Console.ReadLine();
         }

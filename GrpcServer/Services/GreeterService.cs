@@ -22,10 +22,18 @@ namespace GrpcServer
             ByteString MyBytes = ByteString.CopyFromUtf8(TestStr);
             byte[] TestArray = MyBytes.ToByteArray();
 
+            string RetMsg = "You sent these bytes: ";
+            int MaxIter = TestArray.Length;
+            if (MaxIter > 5) MaxIter = 5;
+            for (int i = 0; i < MaxIter; i++)
+            {
+                RetMsg = RetMsg + TestArray[i].ToString() + ", ";
+            }
+            RetMsg = RetMsg.Substring(0, RetMsg.Length - 2) + ".";
+
             return Task.FromResult(new HelloReply
             {
-                Message = "You sent these bytes: " + TestArray[0].ToString() + ", " + TestArray[1].ToString() + ", " + TestArray[2].ToString() + ", " + 
-                                                     TestArray[3].ToString() + ", " + TestArray[4].ToString() + "."
+                Message = RetMsg
             });
         }
     }

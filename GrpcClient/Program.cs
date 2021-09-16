@@ -102,8 +102,8 @@ namespace GrpcClient
 
             //Banane = System.Runtime.Serialization(TestShapeFile);
 
-            IFormatter formatter = new BinaryFormatter(); //Using-Zeug siehe oben!
-            MemoryStream memStream = new MemoryStream(100);
+            IFormatter formatter = new BinaryFormatter(); //Using-Zeug siehe oben! https://docs.microsoft.com/de-de/dotnet/api/system.runtime.serialization.serializationinfo?view=net-5.0
+            MemoryStream memStream = new MemoryStream(100); //https://docs.microsoft.com/de-de/dotnet/api/system.io.memorystream?view=net-5.0
             formatter.Serialize(memStream, TestShapeFile);
 
             memStream.Seek(0, 0);

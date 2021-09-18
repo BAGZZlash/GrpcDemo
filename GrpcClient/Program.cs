@@ -9,20 +9,20 @@ using System.Threading.Tasks;
 //using System.Text.Json;
 //using System.Text.Json.Serialization;
 
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Runtime.Serialization;
+//using System.Runtime.Serialization.Formatters.Binary;
+//using System.Runtime.Serialization;
+//using System.IO;
+
+//using System.Xml;
+//using System.Xml.Serialization;
 using System.IO;
+
+using System.Runtime.Serialization;
 
 namespace GrpcClient
 {
-    [Serializable]
-    public class Shapefile : ISerializable
+    public class Shapefile
     {
-        public Shapefile()
-        {
-            // Empty constructor required to compile.
-        }
-
         public string sFilename;
         public int firstLayer = 0;
         public Boolean Loaded = false;
@@ -59,26 +59,6 @@ namespace GrpcClient
             }
             return (true);
         }
-        public void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            // Use the AddValue method to specify serialized values.
-            info.AddValue("Prop1", sFilename, typeof(string));
-            info.AddValue("Prop2", firstLayer, typeof(int));
-            info.AddValue("Prop3", Loaded, typeof(Boolean));
-            info.AddValue("Prop4", ds, typeof(DataSource));
-            //info.AddValue("Prop5", Layer, typeof(Layer));
-        }
-
-        // The special constructor is used to deserialize values.
-        public Shapefile(SerializationInfo info, StreamingContext context)
-        {
-            // Reset the property value using the GetValue method.
-            sFilename = (string)info.GetValue("Prop1", typeof(string));
-            firstLayer = (int)info.GetValue("Prop2", typeof(int));
-            Loaded = (Boolean)info.GetValue("Prop3", typeof(Boolean));
-            ds = (DataSource)info.GetValue("Prop4", typeof(DataSource));
-            //Layer =  (Layer)info.GetValue("Prop5", typeof(Layer));
-        }
     }
 
     public class Program
@@ -102,14 +82,29 @@ namespace GrpcClient
 
             //Banane = System.Runtime.Serialization(TestShapeFile);
 
-            IFormatter formatter = new BinaryFormatter(); //Using-Zeug siehe oben! https://docs.microsoft.com/de-de/dotnet/api/system.runtime.serialization.serializationinfo?view=net-5.0
-            MemoryStream memStream = new MemoryStream(100); //https://docs.microsoft.com/de-de/dotnet/api/system.io.memorystream?view=net-5.0
-            formatter.Serialize(memStream, TestShapeFile);
+            //IFormatter formatter = new BinaryFormatter(); //Using-Zeug siehe oben! https://docs.microsoft.com/de-de/dotnet/api/system.runtime.serialization.serializationinfo?view=net-5.0
+            //MemoryStream memStream = new MemoryStream(100); //https://docs.microsoft.com/de-de/dotnet/api/system.io.memorystream?view=net-5.0
+            //formatter.Serialize(memStream, TestShapeFile);
 
-            memStream.Seek(0, 0);
-            TestShapeFile = (Shapefile)formatter.Deserialize(memStream);
-            memStream.Close();
-            Console.WriteLine("Filename: {0}", TestShapeFile.sFilename);
+            //memStream.Seek(0, 0);
+            //TestShapeFile = (Shapefile)formatter.Deserialize(memStream);
+            //memStream.Close();
+            //Console.WriteLine("Filename: {0}", TestShapeFile.sFilename);
+
+            //XmlSerializer serializer = new XmlSerializer(obj.GetType());
+            //using (StringWriter writer = new StringWriter())
+            //{
+            //    serializer.Serialize(writer, obj);
+            //    return writer.ToString();
+            //}
+
+            DataContractSerializer ser = new DataContractSerializer(typeof(Shapefile)); //https://docs.microsoft.com/de-de/dotnet/api/system.runtime.serialization.datacontractserializer?view=net-5.0
+            FileStream writer = new FileStream("C:/Temp/Test.dta", FileMode.Create);
+            ser.WriteObject(writer, TestShapeFile);
+
+            //XmlSerializer serializer = new XmlSerializer(typeof(Shapefile)); //https://docs.microsoft.com/en-us/dotnet/api/system.xml.serialization.xmlserializer?view=net-5.0
+            //MemoryStream memStream = new MemoryStream(100);
+            //serializer.Serialize(memStream, TestShapeFile);
 
             var input = new HelloRequest { Name = Banane };
 

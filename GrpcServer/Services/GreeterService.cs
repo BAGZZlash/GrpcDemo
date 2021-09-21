@@ -19,13 +19,10 @@ namespace GrpcServer
         public override Task<HelloReply> SayHello(HelloRequest request, ServerCallContext context)
         {
             string TestStr = request.Name;
-            ByteString MyBytes = ByteString.CopyFromUtf8(TestStr);
-            byte[] TestArray = MyBytes.ToByteArray();
 
             return Task.FromResult(new HelloReply
             {
-                Message = "You sent these bytes: " + TestArray[0].ToString() + ", " + TestArray[1].ToString() + ", " + TestArray[2].ToString() + ", " + 
-                                                     TestArray[3].ToString() + ", " + TestArray[4].ToString() + "."
+                Message = "You sent this string: " + TestStr
             });
         }
     }

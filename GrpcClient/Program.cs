@@ -10,11 +10,13 @@ using System.Threading.Tasks;
 
 using Newtonsoft.Json.Linq;
 
+using System.Diagnostics;
+
 namespace GrpcClient
 {
-    public static class DataSourceExtensions
+    public static class MyExtensionForDataSource
     {
-        public static string SerializeToJson(this DataSource self)
+        public static string SerializeToJson(this DataSource self) //Hier wird festgelegt, welche Klasse erweitert werden soll. Siehe Buch S. 342 (print).
         {
             var jsonRoot = new JObject();
 
@@ -61,6 +63,57 @@ namespace GrpcClient
         }
     }
 
+    public class FGB
+    {
+        private string filename;
+        public DataSource ds;
+        public string JSONString;
+        public string sFilename
+        {
+            get { return filename; }
+            set { filename = value; }
+        }
+
+        public FGB() { }
+
+        public FGB(string FileName) { filename = FileName; }
+
+        public Boolean LoadFGB(string LoadName)
+        {
+            filename = LoadName;
+            bool RetVal = InitLayer(LoadName);
+            return (RetVal);
+        }
+
+        public Boolean InitLayer(string LoadName)
+        {
+            Gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8", "NO");
+            Gdal.SetConfigOption("SHAPE_ENCODING", "");
+            Gdal.SetConfigOption("PROJ_DEBUG", "5");
+            Ogr.RegisterAll(); // Register all drivers
+
+            ds = Ogr.Open(LoadName, 0); // 0 means read-only, 1 means modifiable
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            JSONString = ds.SerializeToJson();
+            stopwatch.Stop();
+            Console.WriteLine(stopwatch.ElapsedMilliseconds.ToString());
+
+            if (ds == null)
+            {
+                Console.WriteLine("Failed to open file [{0}]!", sFilename);
+                return (false);
+            }
+
+            if (ds.GetLayerByIndex(0) == null)
+            {
+                Console.WriteLine("Getting the {0}th layer failed! \n", "0");
+                return (false);
+            }
+            return (true);
+        }
+    }
+
     public class Shapefile
     {
         private string filename;
@@ -91,7 +144,11 @@ namespace GrpcClient
             Ogr.RegisterAll(); // Register all drivers
             
             ds = Ogr.Open(LoadName, 0); // 0 means read-only, 1 means modifiable
-            JSONString = ds.SerializeToJson();
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+                JSONString = ds.SerializeToJson();
+            stopwatch.Stop();
+            Console.WriteLine(stopwatch.ElapsedMilliseconds.ToString());
 
             if (ds == null)
             {
@@ -119,11 +176,14 @@ namespace GrpcClient
             //Shapefile TestShapeFile = new Shapefile("C:/Users/ccroo/ownCloud/WFLO/Vortex/Demo/Testdata/Point_4326.shp");
             Boolean LoadSuccess = TestShapeFile.LoadShapeFile(TestShapeFile.sFilename);
 
-            Console.WriteLine("Shapefile loaded successfully: {0}", LoadSuccess);
+            FGB MyFGB = new FGB("C:/Temp/Cloud/ownCloud/WFLO/Vortex/Demo/Testdata/UScounties.fgb");
+            LoadSuccess = MyFGB.LoadFGB(MyFGB.sFilename);
 
-            Console.WriteLine(TestShapeFile.JSONString);
+            Console.WriteLine("flatgeobuf file loaded successfully: {0}", LoadSuccess);
 
-            var input = new HelloRequest { Name = TestShapeFile.JSONString };
+            Console.WriteLine(MyFGB.JSONString);
+
+            var input = new HelloRequest { Name = MyFGB.JSONString };
 
             Console.WriteLine("\nOpening channel.");
             var channel = GrpcChannel.ForAddress("https://localhost:5001");
